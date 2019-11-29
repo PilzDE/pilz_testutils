@@ -2,26 +2,18 @@
 <package format="2">
   <name>pilz_robot_tfc_api</name>
   <version>0.0.0</version>
-  <description>The pilz_robot_tfc_api package</description>
+  <description>An easy to use API to control the Pilz robot test facility</description>
 
   <maintainer email="f.demirci@pilz.de">fde</maintainer>
-  <maintainer email="h.slusarek@pilz.de">hsl</maintainer>
+  <maintainer email="h.slusarek@pilz.de">Hagen Slusarek</maintainer>
 
   <license>LGPLv3</license>
 
   <url type="bugtracker">https://github.com/PilzDE/pilz_testutils/issues</url>
   <url type="repository">https://github.com/PilzDE/pilz_testutils</url>
 
- 
+  <exec_depend>python-enum34</exec_depend>
+
   <buildtool_depend>catkin</buildtool_depend>
-  
-  <build_depend>rospy</build_depend>
-  <build_depend>std_msgs</build_depend>
-  
-  <build_export_depend>rospy</build_export_depend>
-  <build_export_depend>std_msgs</build_export_depend>
-  
-  <exec_depend>rospy</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
 
 </package>
