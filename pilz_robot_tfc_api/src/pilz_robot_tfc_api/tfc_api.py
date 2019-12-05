@@ -55,7 +55,7 @@ class TestFacilityControlAPI(object):
         pass
 
     @abstractmethod
-    def disable_enabling(self):
+    def deactivate_enabling(self):
         """ Disables the drives by releasing STO_A und STO_B (STO - Safe Torque Off). """
         pass
 
