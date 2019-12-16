@@ -18,6 +18,7 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
 
+
 class OperationMode(Enum):
     """ Declaration of the operation modes. """
     T1 = 0
@@ -36,26 +37,46 @@ class TestFacilityControlAPI(object):
 
     @abstractmethod
     def activate_emergency(self):
-        """ Triggers emergency stop by releasing STO_A und STO_B (STO - Safe Torque Off)."""
+        """ Triggers the emergency stop which causes the safety controller to execute a stop 1.
+
+            This function causes the safety controller to perform the same actions,
+            as if the user pushes the emergency button on the real facility.
+        """
         pass
 
     @abstractmethod
     def disable_emergency(self):
-        """ Releases emergency stop by triggering STO_A und STO_B (STO - Safe Torque Off). """
+        """ Releases the emergency stop.
+
+            This function causes the safety controller to perform the same actions,
+            as if the user releases the emergency button on the real facility.
+        """
         pass
 
     @abstractmethod
     def acknowledge_ready_signal(self):
-        """ Acknowledges the ready signal of the safety controller. """
+        """ Acknowledges the ready signal of the safety controller.
+
+            This function causes the safety controller to perform the same actions,
+            as if the user pushes and releases the acknowledge button on the real facility.
+        """
         pass
 
     @abstractmethod
     def activate_enabling(self):
-        """ Enables the drives by triggering STO_A und STO_B (STO - Safe Torque Off). """
+        """ Enables the drives.
+
+            This function causes the safety controller to perform the same actions,
+            as if the user pushes the enabling button on the real facility.
+        """
         pass
 
     @abstractmethod
     def deactivate_enabling(self):
-        """ Disables the drives by releasing STO_A und STO_B (STO - Safe Torque Off). """
+        """ Disables the drives.
+
+            This function causes the safety controller to perform the same actions,
+            as if the user releases the enabling button on the real facility.
+        """
         pass
 
