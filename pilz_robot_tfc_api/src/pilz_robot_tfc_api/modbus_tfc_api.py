@@ -46,6 +46,11 @@ class ModbusTfcAPI(TestFacilityControlAPI):
 
     def choose_operation_mode(self, op_mode):
         """See base class."""
+
+        self._client.write(_OPERATION_MODE_T1_REGISTER, False)
+        self._client.write(_OPERATION_MODE_T2_REGISTER, False)
+        self._client.write(_OPERATION_MODE_AUTO_REGISTER, False)
+
         if op_mode == OperationMode.T1:
             register = _OPERATION_MODE_T1_REGISTER
         elif op_mode == OperationMode.T2:
