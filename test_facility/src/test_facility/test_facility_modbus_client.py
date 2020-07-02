@@ -15,7 +15,13 @@
 
 from pymodbus.client.sync import ModbusTcpClient
 
-from modbus_client import ModbusClient
+# The register used to tell the FS-controller to active the emergency.
+_EMERGENCY_REGISTER = 0
+_ENABLING_REGISTER = 1
+_OPERATION_MODE_T1_REGISTER = 2
+_OPERATION_MODE_T2_REGISTER = 3
+_OPERATION_MODE_AUTO_REGISTER = 4
+_ACKNOWLEDGE_REGISTER = 5
 
 
 class NoOpenConnection(OSError):
@@ -23,41 +29,52 @@ class NoOpenConnection(OSError):
     pass
 
 
-class PilzModbusClient(ModbusClient):
-    """Implementation of the abstract ModbusClient class using the pymodbus lib"""
+class TestFacilityModbusClient(object):
+    """Modbus client to communicate with robot test facility using the pymodbus lib"""
     _client = None
 
     def _is_connection_open(self):
-        """See base class."""
         if self._client is None:
             return False
         else:
             return True
 
     def open(self):
-        """See base class."""
         if self._is_connection_open():
             return
         self._client = ModbusTcpClient('169.254.60.99', 502)
         self._client.connect()
 
     def close(self):
-        """See base class."""
         if not self._is_connection_open():
             return
         self._client.close()
         self._client = None
 
     def read(self, start_register, end_register):
-        """See base class."""
         if not self._is_connection_open():
             raise NoOpenConnection("No open connection to server")
         return self._client.read_coils(start_register, end_register)
 
     def write(self, register, value):
-        """See base class."""
         if not self._is_connection_open():
             raise NoOpenConnection("No open connection to server")
         response = self._client.write_coil(register, value)
 
+    def set_T1_IO_to(self, flag):
+        self.write(_OPERATION_MODE_T1_REGISTER, flag)
 
+    def set_T2_IO_to(self, flag):
+        self.write(_OPERATION_MODE_T2_REGISTER, flag)
+
+    def set_Auto_IO_to(self, flag):
+        self.write(_OPERATION_MODE_AUTO_REGISTER, flag)
+
+    def set_Emergency_IO_to(self, flag):
+        self.write(_EMERGENCY_REGISTER, flag)
+
+    def set_Acknowledge_IO_to(self, flag):
+        self.write(_ACKNOWLEDGE_REGISTER, flag)
+
+    def set_Enabling_IO_to(self, flag):
+        self.write(_ENABLING_REGISTER, flag)

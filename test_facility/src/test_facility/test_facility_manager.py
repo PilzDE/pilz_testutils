@@ -18,67 +18,89 @@
 import time
 import threading
 
-from tfc_api import TestFacilityControlAPI
 from op_modes import OperationMode
-
-# The register used to tell the FS-controller to active the emergency.
-_EMERGENCY_REGISTER = 0
-_ENABLING_REGISTER = 1
-_OPERATION_MODE_T1_REGISTER = 2
-_OPERATION_MODE_T2_REGISTER = 3
-_OPERATION_MODE_AUTO_REGISTER = 4
-_ACKNOWLEDGE_REGISTER = 5
+from test_facility_api import TestFacilityControlAPI
+from test_facility_modbus_client import TestFacilityModbusClient
 
 
-class ModbusTfcAPI(TestFacilityControlAPI):
+class TestFacilityManager(TestFacilityControlAPI):
 
-    def __init__(self, client):
+    def __init__(self, client=TestFacilityModbusClient()):
         self._client = client
         # Lock to ensure that push and release operation of acknowledge button can be performed atomically
         self._push_and_release_lock = threading.RLock()
+
+    def __enter__(self):
+        self.open()
+
+    def __exit__(self, type_in, value, tb):
+        self.close()
 
     def open(self):
         self._client.open()
 
     def close(self):
+        self.shutdown_robot()
+
         self._client.close()
         self._client = None
 
     def choose_operation_mode(self, op_mode):
         """See base class."""
 
-        self._client.write(_OPERATION_MODE_T1_REGISTER, False)
-        self._client.write(_OPERATION_MODE_T2_REGISTER, False)
-        self._client.write(_OPERATION_MODE_AUTO_REGISTER, False)
+        self._client.set_T1_IO_to(False)
+        self._client.set_T2_IO_to(False)
+        self._client.set_Auto_IO_to(False)
 
         if op_mode == OperationMode.T1:
-            register = _OPERATION_MODE_T1_REGISTER
+            self._client.set_T1_IO_to(True)
         elif op_mode == OperationMode.T2:
-            register = _OPERATION_MODE_T2_REGISTER
+            self._client.set_T2_IO_to(True)
         elif op_mode == OperationMode.Auto:
-            register = _OPERATION_MODE_AUTO_REGISTER
-        self._client.write(register, True)
+            self._client.set_Auto_IO_to(True)
 
     def activate_emergency(self):
         """See base class."""
-        self._client.write(_EMERGENCY_REGISTER, False)
+        self._client.set_Emergency_IO_to(False)
 
     def disable_emergency(self):
         """See base class."""
-        self._client.write(_EMERGENCY_REGISTER, True)
+        self._client.set_Emergency_IO_to(True)
+        # The disabling takes a while
+        time.sleep(0.5)
 
     def acknowledge_ready_signal(self):
         """See base class."""
         with self._push_and_release_lock:
-            self._client.write(_ACKNOWLEDGE_REGISTER, True)
+            self._client.set_Acknowledge_IO_to(True)
+            # To realistically simulate the user action "push" and "release", we wait here for a while
             time.sleep(1.0)
-            self._client.write(_ACKNOWLEDGE_REGISTER, False)
+            self._client.set_Acknowledge_IO_to(False)
 
     def activate_enabling(self):
         """See base class."""
-        self._client.write(_ENABLING_REGISTER, True)
+        self._client.set_Enabling_IO_to(True)
+        # Wait till enabling is given by FS controller
+        time.sleep(0.5)
 
     def deactivate_enabling(self):
         """See base class."""
-        self._client.write(_ENABLING_REGISTER, False)
+        self._client.set_Enabling_IO_to(False)
 
+    def ready_robot_for_motion_in(self, op_mode):
+        self.choose_operation_mode(op_mode)
+        self.acknowledge_ready_signal()
+
+        self.disable_emergency()
+        self.acknowledge_ready_signal()
+
+        if op_mode != OperationMode.Auto:
+            self.activate_enabling()
+
+    def shutdown_robot(self):
+        self.deactivate_enabling()
+
+        self.activate_emergency()
+
+        self.choose_operation_mode(OperationMode.T1)
+        self.acknowledge_ready_signal()

@@ -17,8 +17,6 @@
 
 from abc import ABCMeta, abstractmethod
 
-from op_modes import OperationMode
-
 
 class TestFacilityControlAPI(object):
     """ Declaration of the Pilz robot test facility control API. """

@@ -15,35 +15,20 @@
 
 import time
 
-from pilz_robot_tfc_api.modbus_tfc_api import ModbusTfcAPI
-from pilz_robot_tfc_api.pilz_modbus_client import PilzModbusClient
-from pilz_robot_tfc_api.op_modes import OperationMode
+from test_facility.test_facility_manager import TestFacilityManager
+from test_facility.op_modes import OperationMode
 
 
 def start_program():
     """ Example showing how to set-up robot test facility
         to allow robot motions in option mode T1.
     """
-    tfc = ModbusTfcAPI(PilzModbusClient())
-    tfc.open()
+    tfm = TestFacilityManager()
+    with tfm:
+        tfm.ready_robot_for_motion_in(OperationMode.T1)
 
-    tfc.disable_emergency()
-    tfc.acknowledge_ready_signal()
-
-    tfc.choose_operation_mode(OperationMode.T1)
-    tfc.acknowledge_ready_signal()
-
-    tfc.activate_enabling()
-
-    # Wait till enabling is given by FS controller
-    time.sleep(0.5)
-
-    # Perform robot motions...
-    time.sleep(2.0)
-
-    tfc.deactivate_enabling()
-
-    tfc.close()
+        # Perform robot motions...
+        time.sleep(2.0)
 
 
 if __name__ == "__main__":

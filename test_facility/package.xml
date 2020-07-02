@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>pilz_robot_tfc_api</name>
+  <name>test_facility</name>
   <version>0.0.0</version>
   <description>An easy to use API to control the Pilz robot test facility</description>
 

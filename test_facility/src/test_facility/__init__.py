@@ -17,8 +17,8 @@
 
 """API for easy usage of Pilz robot test facility."""
 
-from .tfc_api import *
-from .modbus_tfc_api import *
-from .modbus_client import *
-from .pilz_modbus_client import *
 from .op_modes import *
+from .test_facility_api import *
+from .test_facility_manager import *
+from .test_facility_modbus_client import *
+
