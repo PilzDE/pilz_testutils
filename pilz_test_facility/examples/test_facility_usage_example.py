@@ -15,8 +15,8 @@
 
 import time
 
-from test_facility.test_facility_manager import TestFacilityManager
-from test_facility.op_modes import OperationMode
+from pilz_test_facility.test_facility_manager import TestFacilityManager
+from pilz_test_facility.op_modes import OperationMode
 
 
 def start_program():
