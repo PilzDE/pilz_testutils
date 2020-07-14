@@ -14,6 +14,7 @@
 
   <exec_depend>python-enum34</exec_depend>
   <exec_depend>python-pymodbus</exec_depend>
+  <exec_depend>moveit_commander</exec_depend>
 
   <buildtool_depend>catkin</buildtool_depend>
 

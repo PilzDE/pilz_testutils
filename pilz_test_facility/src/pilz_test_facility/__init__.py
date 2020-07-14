@@ -22,4 +22,5 @@ from .test_facility_api import *
 from .test_facility_manager import *
 from .test_facility_modbus_client import *
 from .test_facility_modbus_client_mock import *
+from .test_facility_sensors import *
 
