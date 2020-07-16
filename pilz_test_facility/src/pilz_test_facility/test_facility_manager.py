@@ -31,19 +31,11 @@ class TestFacilityManager(TestFacilityControlAPI):
         self._push_and_release_lock = threading.RLock()
 
     def __enter__(self):
-        self.open()
-
-    def __exit__(self, type_in, value, tb):
-        self.close()
-
-    def open(self):
         self._client.open()
 
-    def close(self):
+    def __exit__(self, type_in, value, tb):
         self.shutdown_robot()
-
         self._client.close()
-        self._client = None
 
     def choose_operation_mode(self, op_mode):
         """See base class."""
