@@ -1,7 +1,27 @@
 # PSENscan test area scripts
 This folder contains all scripts handling the automatic test execution at the PSENscan test area.
 
-## Installation
+## Executing acceptance test
+> **Note:** This part assumes you [set up your Linux machine](#how-to-set-up-linux-machine-for-automatic-acceptance-test)
+
+Execute
+```
+$TEST_AREA_SCRIPTS_PATH/automatic_acceptance_test_psen_scan.sh
+```
+The test will automatically start on the `melodic-devel` branch of the [psen_scan repo](https://github.com/PilzDE/psen_scan)
+
+### Options
+The main script can be launched with one optional parameter. This parameter changes the target checkout. Any valid `git checkout` parameter is allowed (default: `melodic-devel`).
+
+Example:
+```
+$TEST_AREA_SCRIPTS_PATH/automatic_acceptance_test_psen_scan.sh '1.0.2'
+```
+This will perform the acceptance test on tag `1.0.2`
+> **Note:** The version you check out must already include the acceptance test.
+
+
+## How to set up Linux machine for automatic acceptance test
 1. Set the global environment variable TEST_AREA_SCRIPTS_PATH.
 
     ```
@@ -30,7 +50,3 @@ This folder contains all scripts handling the automatic test execution at the PS
     ```
     > All users have to be add to this group. \
     > `usermod -a -G test USER`
-
-## Options
-The main script (`automatic_acceptance_test_psen_scan.sh`) can be launched with one optional parameter. This parameter changes the target checkout 
-> default: `melodic-devel`
