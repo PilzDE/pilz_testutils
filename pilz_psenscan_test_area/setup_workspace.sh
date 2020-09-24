@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 create_catkin_ws()
 {
@@ -23,7 +23,7 @@ log_repo_info()
 
 build_ws()
 {
-  catkin build --workspace "$CATKIN_WS_DIR" --pre-clean "$REPO_NAME" > /dev/null 2>&1 && echo "Build successful!"
+  catkin build --workspace "$CATKIN_WS_DIR" --pre-clean "$REPO_NAME" 2>&1 && echo "Build successful!"
 }
 
 create_catkin_ws
