@@ -22,7 +22,6 @@ exit_failure()
 create_log_file()
 {
   LOG_DIR="/var/log/automatic_acceptance_test"
-  mkdir $LOG_DIR 2> /dev/null
 
   LOG_FILE_NAME="$(date '+%Y_%m_%d_%H_%M_%S')_"$REPO_NAME"_automatic_acceptance_test_log.txt"
   LOG_FILE="$LOG_DIR/$LOG_FILE_NAME"
