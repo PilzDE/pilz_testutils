@@ -19,8 +19,9 @@ launch_psen_scan_node()
 
 test_for_correct_publish()
 {
-  rosrun $REPO_NAME acceptancetest_publish_test 2>&1 && kill $PID 2>&1 && echo "Test successful" && wait && exit 0
-  kill $PID 2>&1 && { echo "Test failed"; wait; exit 1; }
+  test_name="acceptancetest_publish_test"
+  rosrun $REPO_NAME $test_name 2>&1 && kill $PID 2>&1 && echo "$test_name successful" && wait && exit 0
+  kill $PID 2>&1 && { echo "$test_name failed"; wait; exit 1; }
 }
 
 source_ws
