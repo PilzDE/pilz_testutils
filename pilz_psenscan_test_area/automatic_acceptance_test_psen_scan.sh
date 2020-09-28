@@ -64,6 +64,9 @@ end_log_file_section()
 
 execute_section()
 {
+  # Parse section name from script name by:
+  # 1. Taking away the preceding path and .sh suffix
+  # 2. Replacing underscores with spaces
   section_name=$(echo "$1" | sed -E 's/.*\/([a-zA-Z_]+)\.sh/\1/;s/_/ /g')
   echo "$section_name ..."
   start_log_file_section "$section_name"

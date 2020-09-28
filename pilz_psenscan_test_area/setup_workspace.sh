@@ -14,6 +14,7 @@ clone_repo()
 log_repo_info()
 {
   cd "$REPO_DIR"
+  # Parse the currently checked out branch and commit hash
   branch=$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')
   commit_hash=$(git log -1 | sed -e '/^[^c]/d' -e 's/commit \(.*\)/\1/')
   echo "repo: $REPO_NAME"
