@@ -68,11 +68,11 @@ execute_section()
   # 1. Taking away the preceding path and .sh suffix
   # 2. Replacing underscores with spaces
   section_name=$(echo "$1" | sed -E 's/.*\/([a-zA-Z_]+)\.sh/\1/;s/_/ /g')
-  echo "$section_name ..."
+  echo -e "\033[0;36m$section_name ...\033[0m"
   start_log_file_section "$section_name"
   $@ >> $LOG_FILE || exit_failure "$1 failed!"
   end_log_file_section "$section_name"
-  echo "done"
+  echo -e "\033[0;36m$section_name done\033[0m"
 }
 
 create_log_file
@@ -84,5 +84,5 @@ execute_section "$TEST_AREA_SCRIPTS_PATH/setup_workspace.sh"
 
 execute_section "$TEST_AREA_SCRIPTS_PATH/execute_test.sh"
 
-echo "Test successful"
+echo -e "\033[0;32mTest successful"
 exit 0
