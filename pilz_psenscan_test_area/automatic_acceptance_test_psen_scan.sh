@@ -35,6 +35,11 @@ source_ROS()
   source /opt/ros/melodic/setup.bash 2>> $LOG_FILE || exit_failure "Sourcing ROS failed!"
 }
 
+source_ws()
+{
+  source "$CATKIN_WS_DIR/devel/setup.bash"
+}
+
 print_separator()
 {
   separator=""
@@ -81,7 +86,7 @@ source_ROS
 execute_section "$TEST_AREA_SCRIPTS_PATH/update_system_packages.sh"
 
 execute_section "$TEST_AREA_SCRIPTS_PATH/setup_workspace.sh"
-
+source_ws
 execute_section "$TEST_AREA_SCRIPTS_PATH/execute_test.sh"
 
 echo -e "\033[0;32mTest successful"

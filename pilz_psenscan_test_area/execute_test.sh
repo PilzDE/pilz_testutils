@@ -1,10 +1,5 @@
 #!/bin/bash -x
 
-source_ws()
-{
-  source "$CATKIN_WS_DIR/devel/setup.bash" 2>&1
-}
-
 log_ws_info()
 {
   echo "ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH"
@@ -24,7 +19,6 @@ test_for_correct_publish()
   kill $PID 2>&1 && { echo "$test_name failed"; wait; exit 1; }
 }
 
-source_ws
 log_ws_info
 launch_psen_scan_node
 test_for_correct_publish
