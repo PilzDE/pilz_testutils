@@ -77,7 +77,7 @@ execute_section()
   section_name=$(echo "$1" | sed -E 's/.*\/([a-zA-Z_]+)\.sh/\1/;s/_/ /g')
   echo -e "\033[0;36m$section_name ...\033[0m"
   start_log_file_section "$section_name"
-  $@ >> $LOG_FILE || exit_failure "$1 failed!"
+  stdbuf -o 0 $@ | tee -a $LOG_FILE || exit_failure "$1 failed!" # TODO: print to console only for test execution?
   end_log_file_section "$section_name"
   echo -e "\033[0;36m$section_name done\033[0m"
 }
@@ -89,7 +89,7 @@ execute_section "$TEST_AREA_SCRIPTS_PATH/update_system_packages.sh"
 
 execute_section "$TEST_AREA_SCRIPTS_PATH/setup_workspace.sh"
 source_ws
-$TEST_AREA_SCRIPTS_PATH/execute_test.sh # TODO check how to print this to console properly during test
+execute_section "$TEST_AREA_SCRIPTS_PATH/execute_test.sh"
 
 catkin_test_results $LOG_FOLDER_NAME
 n_failed_tests=$?
