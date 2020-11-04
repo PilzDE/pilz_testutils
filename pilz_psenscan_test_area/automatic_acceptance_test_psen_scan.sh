@@ -2,6 +2,7 @@
 
 [[ -z $TEST_AREA_SCRIPTS_PATH ]] && { echo "Environment variable TEST_AREA_SCRIPTS_PATH is not set! Cannot continue!" >&2; exit 1; }
 [[ -z $1 ]] && export TARGET_BRANCH="melodic-devel" || export TARGET_BRANCH="$1"
+[[ -z $2 ]] || export TEST_DURATION="$2"
 
 TMP_DIR="/tmp"
 CATKIN_WS_NAME="catkin_ws"

@@ -6,11 +6,12 @@ log_ws_info()
 }
 
 
-test_for_correct_publish()
+test_scan_compare()
 {
-  test_name="acceptancetest_publish_test"
-  rostest $REPO_NAME hwtest_scan_compare.test --results-base-dir "$LOG_FOLDER_NAME"
+  TEST_FILE="hwtest_scan_compare.test"
+  TEST_ARGS="${TEST_DURATION+test_duration:=$TEST_DURATION} --text --results-base-dir $LOG_FOLDER_NAME"
+  rostest $REPO_NAME $TEST_FILE $TEST_ARGS
 }
 
 log_ws_info
-test_for_correct_publish
+test_scan_compare
