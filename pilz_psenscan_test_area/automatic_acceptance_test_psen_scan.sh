@@ -7,8 +7,10 @@ TMP_DIR="/tmp"
 CATKIN_WS_NAME="catkin_ws"
 export CATKIN_WS_DIR="$TMP_DIR/$CATKIN_WS_NAME"
 export SRC_DIR="$CATKIN_WS_DIR/src"
-export REPO_NAME="psen_scan"
+export REPO_NAME="psen_scan_v2"
 export REPO_DIR="$SRC_DIR/$REPO_NAME"
+export LOG_DIR="/var/log/automatic_acceptance_test"
+export LOG_FOLDER_NAME=$LOG_DIR"/$(date '+%Y_%m_%d_%H_%M_%S')_"$REPO_NAME
 
 
 exit_failure()
@@ -21,10 +23,9 @@ exit_failure()
 
 create_log_file()
 {
-  LOG_DIR="/var/log/automatic_acceptance_test"
-
+  mkdir -p "$LOG_FOLDER_NAME"
   LOG_FILE_NAME="$(date '+%Y_%m_%d_%H_%M_%S')_"$REPO_NAME"_automatic_acceptance_test_log.txt"
-  LOG_FILE="$LOG_DIR/$LOG_FILE_NAME"
+  LOG_FILE="$LOG_FOLDER_NAME/$LOG_FILE_NAME"
   touch $LOG_FILE 2> /dev/null || { LOG_DIR="/home/$USER"; LOG_FILE="$LOG_DIR/$LOG_FILE_NAME"; echo "Cannot create system logfile." >&2; }
   touch $LOG_FILE 2> /dev/null || exit_failure "Cannot create local logfile."
   echo "Logging to $LOG_FILE."
@@ -87,7 +88,7 @@ execute_section "$TEST_AREA_SCRIPTS_PATH/update_system_packages.sh"
 
 execute_section "$TEST_AREA_SCRIPTS_PATH/setup_workspace.sh"
 source_ws
-execute_section "$TEST_AREA_SCRIPTS_PATH/execute_test.sh"
+$TEST_AREA_SCRIPTS_PATH/execute_test.sh # TODO check how to print this to console properly during test
 
 echo -e "\033[0;32mTest successful"
 exit 0

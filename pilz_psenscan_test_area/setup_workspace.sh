@@ -3,6 +3,7 @@
 create_catkin_ws()
 {
   mkdir -p "$SRC_DIR" 2>&1
+  catkin init --workspace "$CATKIN_WS_DIR"
 }
 
 clone_repo()
@@ -24,7 +25,10 @@ log_repo_info()
 
 build_ws()
 {
-  catkin build --workspace "$CATKIN_WS_DIR" --pre-clean "$REPO_NAME" 2>&1 && echo "Build successful!"
+  catkin config --cmake-args -DENABLE_HARDWARE_TESTING=ON
+  catkin config --workspace /tmp/catkin_ws
+  catkin build
+  catkin build --make-args tests
 }
 
 create_catkin_ws
