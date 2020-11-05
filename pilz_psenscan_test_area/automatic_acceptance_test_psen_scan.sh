@@ -91,13 +91,5 @@ execute_section "$TEST_AREA_SCRIPTS_PATH/setup_workspace.sh"
 source_ws
 execute_section "$TEST_AREA_SCRIPTS_PATH/execute_test.sh"
 
-catkin_test_results $LOG_FOLDER_NAME
-n_failed_tests=$?
-
-if [ "$n_failed_tests" -eq "0" ]; then
-   echo -e "\033[0;32mTest successful\033[0m"
-else
-    echo -e "\033[0;31mTest failed\033[0m"
-fi
-
-exit $n_failed_tests
+catkin_test_results $LOG_FOLDER_NAME && { echo -e "\033[0;32mTest successful\033[0m"; exit 0; } ||
+                                        { echo -e "\033[0;31mTest failed\033[0m"; exit 1; }
