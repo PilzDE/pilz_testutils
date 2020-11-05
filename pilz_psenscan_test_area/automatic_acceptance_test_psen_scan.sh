@@ -77,7 +77,8 @@ execute_section()
   section_name=$(echo "$1" | sed -E 's/.*\/([a-zA-Z_]+)\.sh/\1/;s/_/ /g')
   echo -e "\033[0;36m$section_name ...\033[0m"
   start_log_file_section "$section_name"
-  stdbuf -o 0 $@ | tee -a $LOG_FILE || exit_failure "$1 failed!" # TODO: print to console only for test execution?
+  stdbuf -o 0 $@ | tee -a $LOG_FILE
+  [[ ${PIPESTATUS[0]} != 0 ]] && exit_failure "$1 failed!"
   end_log_file_section "$section_name"
   echo -e "\033[0;36m$section_name done\033[0m"
 }
@@ -91,5 +92,5 @@ execute_section "$TEST_AREA_SCRIPTS_PATH/setup_workspace.sh"
 source_ws
 execute_section "$TEST_AREA_SCRIPTS_PATH/execute_test.sh"
 
-catkin_test_results $LOG_FOLDER_NAME && { echo -e "\033[0;32mTest successful\033[0m"; exit 0; } ||
-                                        { echo -e "\033[0;31mTest failed\033[0m"; exit 1; }
+echo -e "\033[0;32mTest successful\033[0m"
+exit 0
