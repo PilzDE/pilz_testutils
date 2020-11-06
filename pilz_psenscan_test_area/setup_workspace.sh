@@ -3,6 +3,7 @@
 create_catkin_ws()
 {
   mkdir -p "$SRC_DIR" 2>&1
+  catkin clean --workspace "$CATKIN_WS_DIR" --deinit -y
   catkin init --workspace "$CATKIN_WS_DIR"
 }
 
