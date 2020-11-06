@@ -26,7 +26,8 @@ log_repo_info()
 build_ws()
 {
   catkin config --cmake-args -DENABLE_HARDWARE_TESTING=ON
-  catkin config --workspace /tmp/catkin_ws
+  catkin config --workspace $CATKIN_WS_DIR
+  catkin config --whitelist $REPO_NAME
   catkin build
   catkin build --make-args tests
 }
