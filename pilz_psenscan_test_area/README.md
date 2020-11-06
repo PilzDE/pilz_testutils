@@ -6,12 +6,15 @@ This folder contains all scripts handling the automatic test execution at the PS
 
 Execute
 ```
-$TEST_AREA_SCRIPTS_PATH/automatic_acceptance_test_psen_scan.sh
+$TEST_AREA_SCRIPTS_PATH/automatic_acceptance_test_psen_scan.sh [TARGET_BRANCH] [TEST_DURATION]
 ```
-The test will automatically start on the `melodic-devel` branch of the [psen_scan repo](https://github.com/PilzDE/psen_scan)
+The test will automatically start on the `melodic-devel` branch of the [psen_scan_v2 repo](https://github.com/PilzDE/psen_scan_v2)
 
 ### Options
-The main script can be launched with one optional parameter. This parameter changes the target checkout. Any valid `git checkout` parameter is allowed (default: `melodic-devel`).
+The main script can be launched with two optional parameters.
+
+#### TARGET_BRANCH
+This parameter changes the target checkout. Any valid `git checkout` parameter is allowed (default: `melodic-devel`).
 
 Example:
 ```
@@ -20,6 +23,15 @@ $TEST_AREA_SCRIPTS_PATH/automatic_acceptance_test_psen_scan.sh '1.0.2'
 This will perform the acceptance test on tag `1.0.2`
 > **Note:** The version you check out must already include the acceptance test.
 
+#### TEST_DURATION
+This parameter sets the test duration in seconds (default: none).
+
+Example:
+```
+$TEST_AREA_SCRIPTS_PATH/automatic_acceptance_test_psen_scan.sh 'melodic-devel' 30
+```
+This will perform the acceptance test on branch `melodic-devel` for 30 seconds.
+> **Note:** You will need to explicitly set the `TARGET_BRANCH` to be able to set `TEST_DURATION`.
 
 ## How to set up Linux machine for automatic acceptance test
 1. Set the global environment variable TEST_AREA_SCRIPTS_PATH.
@@ -39,7 +51,7 @@ This will perform the acceptance test on tag `1.0.2`
     Type=Application
     Name=AutomaticAcceptanceTestPSENscan
     Terminal=true
-    Exec=bash -c "sleep 1; $TEST_AREA_SCRIPTS_PATH/automatic_acceptance_test_psen_scan.sh 'feature/acceptance_test_publish_test'; echo 'Press ENTER to exit ...'; read"
+    Exec=bash -c "sleep 1; $TEST_AREA_SCRIPTS_PATH/automatic_acceptance_test_psen_scan.sh [TARGET_BRANCH] [TEST_DURATION]; echo 'Press ENTER to exit ...'; read"
 
     ```
 4. Create the folder `/var/log/automatic_acceptance_test`

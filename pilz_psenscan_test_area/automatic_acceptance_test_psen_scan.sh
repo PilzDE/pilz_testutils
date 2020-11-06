@@ -2,13 +2,16 @@
 
 [[ -z $TEST_AREA_SCRIPTS_PATH ]] && { echo "Environment variable TEST_AREA_SCRIPTS_PATH is not set! Cannot continue!" >&2; exit 1; }
 [[ -z $1 ]] && export TARGET_BRANCH="melodic-devel" || export TARGET_BRANCH="$1"
+[[ -z $2 ]] || export TEST_DURATION="$2"
 
 TMP_DIR="/tmp"
 CATKIN_WS_NAME="catkin_ws"
 export CATKIN_WS_DIR="$TMP_DIR/$CATKIN_WS_NAME"
 export SRC_DIR="$CATKIN_WS_DIR/src"
-export REPO_NAME="psen_scan"
+export REPO_NAME="psen_scan_v2"
 export REPO_DIR="$SRC_DIR/$REPO_NAME"
+export LOG_DIR="/var/log/automatic_acceptance_test"
+export LOG_FOLDER_NAME=$LOG_DIR"/$(date '+%Y_%m_%d_%H_%M_%S')_"$REPO_NAME
 
 
 exit_failure()
@@ -21,10 +24,9 @@ exit_failure()
 
 create_log_file()
 {
-  LOG_DIR="/var/log/automatic_acceptance_test"
-
+  mkdir -p "$LOG_FOLDER_NAME"
   LOG_FILE_NAME="$(date '+%Y_%m_%d_%H_%M_%S')_"$REPO_NAME"_automatic_acceptance_test_log.txt"
-  LOG_FILE="$LOG_DIR/$LOG_FILE_NAME"
+  LOG_FILE="$LOG_FOLDER_NAME/$LOG_FILE_NAME"
   touch $LOG_FILE 2> /dev/null || { LOG_DIR="/home/$USER"; LOG_FILE="$LOG_DIR/$LOG_FILE_NAME"; echo "Cannot create system logfile." >&2; }
   touch $LOG_FILE 2> /dev/null || exit_failure "Cannot create local logfile."
   echo "Logging to $LOG_FILE."
@@ -75,7 +77,8 @@ execute_section()
   section_name=$(echo "$1" | sed -E 's/.*\/([a-zA-Z_]+)\.sh/\1/;s/_/ /g')
   echo -e "\033[0;36m$section_name ...\033[0m"
   start_log_file_section "$section_name"
-  $@ >> $LOG_FILE || exit_failure "$1 failed!"
+  stdbuf -o 0 $@ | tee -a $LOG_FILE
+  [[ ${PIPESTATUS[0]} != 0 ]] && exit_failure "$1 failed!"
   end_log_file_section "$section_name"
   echo -e "\033[0;36m$section_name done\033[0m"
 }
@@ -89,5 +92,5 @@ execute_section "$TEST_AREA_SCRIPTS_PATH/setup_workspace.sh"
 source_ws
 execute_section "$TEST_AREA_SCRIPTS_PATH/execute_test.sh"
 
-echo -e "\033[0;32mTest successful"
+echo -e "\033[0;32mTest successful\033[0m"
 exit 0
