@@ -44,7 +44,11 @@ This will perform the acceptance test on branch `melodic-devel` for 30 seconds.
 
     > The PSENscan test area pc has a test_environment.sh file for this purpose.
 
-2. Create the TEST_AREA_SCRIPTS_PATH folder and copy the scripts in it.
+2. Create a symlink:
+
+    ```
+    ln -s <path/to/pilz_testutils>/pilz_psenscan_test_area $TEST_AREA_SCRIPTS_PATH
+    ```
 3. Create a .desktop file in `/etc/xdg/autostart/` with following content:
     ```
     [Desktop Entry]
@@ -62,3 +66,6 @@ This will perform the acceptance test on branch `melodic-devel` for 30 seconds.
     ```
     > All users have to be add to this group. \
     > `usermod -a -G test USER`
+6. Set up a reference scan (only if phyiscal test environment changed) as described in [psen_scan_v2:hwtest_readme.md](https://github.com/PilzDE/psen_scan_v2/blob/melodic-devel/test/hw_tests/hwtest_readme.md).
+
+    > For convenience, add required environment variables permanently as described above.
