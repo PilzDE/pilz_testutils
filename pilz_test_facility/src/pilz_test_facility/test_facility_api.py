@@ -47,7 +47,7 @@ class TestFacilityControlAPI(object):
 
     @abstractmethod
     def acknowledge_ready_signal(self):
-        """ Acknowledges the ready signal of the safety controller.
+        """ Acknowledges the ready signal of the safety controller. For example after changing the operation mode
 
             This function causes the safety controller to perform the same actions,
             as if the user pushes and releases the acknowledge button on the real facility.
@@ -56,7 +56,7 @@ class TestFacilityControlAPI(object):
 
     @abstractmethod
     def activate_enabling(self):
-        """ Enables the drives.
+        """ Enables the drives. ("Zustimmung")
 
             This function causes the safety controller to perform the same actions,
             as if the user pushes the enabling button on the real facility.
@@ -65,7 +65,7 @@ class TestFacilityControlAPI(object):
 
     @abstractmethod
     def deactivate_enabling(self):
-        """ Disables the drives.
+        """ Disables the drives. ("Zustimmung")
 
             This function causes the safety controller to perform the same actions,
             as if the user releases the enabling button on the real facility.
