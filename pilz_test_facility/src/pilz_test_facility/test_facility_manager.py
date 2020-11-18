@@ -65,7 +65,7 @@ class TestFacilityManager(TestFacilityControlAPI):
         """See base class."""
         with self._push_and_release_lock:
             self._client.set_Acknowledge_IO_to(True)
-            # To realistically simulate the user action "push" and "release", we wait here for a while
+            # To realistically simulate the user action "push" and "release", we wait here for a while ("Taster")
             time.sleep(1.0)
             self._client.set_Acknowledge_IO_to(False)
 
