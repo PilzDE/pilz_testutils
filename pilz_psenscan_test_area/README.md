@@ -6,7 +6,7 @@ This folder contains all scripts handling the automatic test execution at the PS
 
 Execute
 ```
-$TEST_AREA_SCRIPTS_PATH/automatic_acceptance_test_psen_scan.sh [TARGET_BRANCH] [TEST_DURATION]
+$TEST_AREA_SCRIPTS_PATH/automatic_acceptance_test_psen_scan.sh [TARGET_BRANCH] [TEST_DURATION] [STANDALONE]
 ```
 The test will automatically start on the `melodic-devel` branch of the [psen_scan_v2 repo](https://github.com/PilzDE/psen_scan_v2)
 
@@ -32,6 +32,15 @@ $TEST_AREA_SCRIPTS_PATH/automatic_acceptance_test_psen_scan.sh 'melodic-devel' 3
 ```
 This will perform the acceptance test on branch `melodic-devel` for 30 seconds.
 > **Note:** You will need to explicitly set the `TARGET_BRANCH` to be able to set `TEST_DURATION`.
+
+#### STANDALONE
+This parameter determines if the standalone library or the ros package is tested (default: false).
+
+Example:
+```
+$TEST_AREA_SCRIPTS_PATH/automatic_acceptance_test_psen_scan.sh 'melodic-devel' 30 'true'
+```
+> **Note:** You will need to explicitly set the `TARGET_BRANCH` and the `TEST_DURATION` to be able to set `STANDALONE`.
 
 ## How to set up Linux machine for automatic acceptance test
 1. Set the global environment variable TEST_AREA_SCRIPTS_PATH.
