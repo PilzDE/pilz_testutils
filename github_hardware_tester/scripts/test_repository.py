@@ -3,7 +3,7 @@
 """Automated Hardware Testing
 
 Usage:
-   github_hardware_tester.py REPO ALLOWED_USERS ... [--log=LOG_DIR] [--docker_opts=DOCKER_OPTS] [--apt_proxy=APT_PROXY] [--cmake_args=CMAKE_ARGS]
+   github_hardware_tester.py REPO ALLOWED_USERS ... [--log=LOG_DIR] [--docker_opts=DOCKER_OPTS] [--apt_proxy=APT_PROXY] [--cmake_args=CMAKE_ARGS] [--setup_cmd=SETUP_CMD] [--cleanup_cmd=SETUP_CMD]
 
    e.g. github_hardware_tester.py max/awesome_repo max theOtherOne AwesomeGuy
 
@@ -13,6 +13,8 @@ Options:
     --docker_opts=DOCKER_OPTS   options that will be passed to the industrial ci
     --cmake_args=CMAKE_ARGS     arguments that will be passed to the cmake run
     --apt_proxy=APT_PROXY
+    --setup_cmd=SETUP_CMD       command to run before starting industrial_ci e.g. for starting hardware
+    --cleanup_cmd=CLEANUP_CMD   command to run after industrial_ci has finished e.g. for stopping hardware
 """
 
 
@@ -28,10 +30,10 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 def _get_github_token():
     TOKEN = ""
     try:
-        with open(os.path.join(os.path.dirname(__file__), 'TOKEN'), 'r') as f:
+        with open(os.path.join(os.path.expanduser('~'), 'TOKEN'), 'r') as f:
             TOKEN = f.readline()
     except FileNotFoundError:
-        print("Please create a 'TOKEN' file with a valid github token to access the repository next to the main.py")
+        print("Could not find %s" % os.path.join(os.path.expanduser('~'), 'TOKEN'))
         return 0
     return TOKEN
 
@@ -50,6 +52,8 @@ if __name__ == "__main__":
     cmake_args = arguments.get("--cmake_args")
     allowed_users = arguments.get("ALLOWED_USERS")
     apt_proxy = arguments.get("--apt_proxy")
+    setup_cmd = arguments.get("--setup_cmd")
+    cleanup_cmd = arguments.get("--cleanup_cmd")
 
     token = _get_github_token()
 
@@ -60,7 +64,9 @@ if __name__ == "__main__":
                             token=token,
                             apt_proxy=apt_proxy,
                             repo=repo,
-                            log_dir=log_dir)
+                            log_dir=log_dir,
+                            setup_cmd=setup_cmd,
+                            cleanup_cmd=cleanup_cmd)
 
     with contextlib.suppress(KeyboardInterrupt):
         tester.check_prs(ask_user_for_pr_to_check(

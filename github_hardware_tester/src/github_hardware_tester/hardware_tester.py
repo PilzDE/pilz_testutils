@@ -8,7 +8,7 @@ import subprocess
 
 
 class HardwareTester(object):
-    def __init__(self, token, repo, log_dir, cmake_args, docker_opts, apt_proxy, *args, **kwargs):
+    def __init__(self, token, repo, log_dir, cmake_args, docker_opts, apt_proxy, setup_cmd, cleanup_cmd, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._token = token
         self._repo = repo
@@ -16,6 +16,8 @@ class HardwareTester(object):
         self._docker_opts = docker_opts
         self._cmake_args = cmake_args
         self._apt_proxy = apt_proxy
+        self._setup_cmd = setup_cmd
+        self._cleanup_cmd = cleanup_cmd
 
     def check_prs(self, prs_to_check):
         for pr in prs_to_check:
@@ -28,6 +30,7 @@ class HardwareTester(object):
     def check_pr(self, pr):
         last_commit = list(pr.get_commits())[-1]
         pr.create_issue_comment("Starting a test for %s" % last_commit.sha)
+        subprocess.check_output(self._setup_cmd, stderr=subprocess.STDOUT, shell=True)
         with PrintRedirector(Path(self._log_dir) / Path(self._get_log_file_name(pr))):
             with TemporaryDirectory() as t:
                 run_subprocess(
@@ -46,6 +49,7 @@ class HardwareTester(object):
             last_commit.sha[:7], "SUCCESSFULL" if not result else "WITH %s FAILURES" % result)
         print(end_text)
         pr.create_issue_comment(end_text)
+        subprocess.check_output(self._cleanup_cmd, stderr=subprocess.STDOUT, shell=True)
 
 
 def run_subprocess(command, dir):
