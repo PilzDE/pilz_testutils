@@ -9,10 +9,10 @@ ALLOW_TEXT = "Allow hw-tests for "
 
 
 class GitHubPullRequestAnalyzer(object):
-    def __init__(self, namespace, repo, token, allowed_users, *args, **kwargs):
+    def __init__(self, repo, token, allowed_users, *args, **kwargs):
         super().__init__(*args, **kwargs)
         g = Github(token)
-        self._repo = g.get_repo("%s/%s" % (namespace, repo))
+        self._repo = g.get_repo(repo)
         self._current_pr = None
         self._allowed_users = allowed_users
 
