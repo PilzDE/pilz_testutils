@@ -3,3 +3,4 @@
 /doc/manifest.yaml
 TOKEN
 __pycache__/
+*.egg-info/

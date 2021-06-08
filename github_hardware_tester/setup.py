@@ -1,9 +1,12 @@
-# -*- coding: utf-8 -*-
+# ! DO NOT MANUALLY INVOKE THIS setup.py, USE CATKIN INSTEAD
 
 from setuptools import setup, find_packages
+from distutils.core import setup
+from catkin_pkg.python_setup import generate_distutils_setup
 
-setup(
-    name="github_hardware_tester",
-    packages=find_packages(),
-    requires=["Python (>3.6.1)", "PyGithub"]
-)
+# fetch values from package.xml
+setup_args = generate_distutils_setup(
+    packages=['github_hardware_tester'],
+    package_dir={'': 'src'})
+
+setup(**setup_args)
