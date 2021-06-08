@@ -1,3 +1,5 @@
 *.pyc
 /doc/html
 /doc/manifest.yaml
+TOKEN
+__pycache__/
