@@ -3,13 +3,20 @@
 """Automated Hardware Testing
 
 Usage:
-   github_hardware_tester.py REPO ALLOWED_USERS ... [--log=LOG_DIR] [--docker_opts=DOCKER_OPTS] [--apt_proxy=APT_PROXY] [--cmake_args=CMAKE_ARGS] [--setup_cmd=SETUP_CMD] [--cleanup_cmd=SETUP_CMD]
+    github_hardware_tester.py REPO ALLOWED_USERS ... --token=TOKEN
+        [--log=LOG_DIR]
+        [--docker_opts=DOCKER_OPTS]
+        [--apt_proxy=APT_PROXY]
+        [--cmake_args=CMAKE_ARGS]
+        [--setup_cmd=SETUP_CMD]
+        [--cleanup_cmd=SETUP_CMD]
 
    e.g. github_hardware_tester.py max/awesome_repo max theOtherOne AwesomeGuy
 
 Options:
     -h --help                   show this
     --log=LOG_DIR               test log directory [default: ~/.ros/hardware_tests/]
+    --token=TOKEN               GitHub personal access token with "public_repo" scope
     --docker_opts=DOCKER_OPTS   options that will be passed to the industrial ci
     --cmake_args=CMAKE_ARGS     arguments that will be passed to the cmake run
     --apt_proxy=APT_PROXY
@@ -27,17 +34,6 @@ import contextlib
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 
-def _get_github_token():
-    TOKEN = ""
-    try:
-        with open(os.path.join(os.path.expanduser('~'), 'TOKEN'), 'r') as f:
-            TOKEN = f.readline()
-    except FileNotFoundError:
-        print("Could not find %s" % os.path.join(os.path.expanduser('~'), 'TOKEN'))
-        return 0
-    return TOKEN
-
-
 def _define_args():
     pass
 
@@ -48,14 +44,13 @@ if __name__ == "__main__":
     print(arguments)
     repo = arguments.get("REPO")
     log_dir = os.path.expanduser(arguments.get("--log"))
+    token = arguments.get("--token")
     docker_opts = arguments.get("--docker_opts")
     cmake_args = arguments.get("--cmake_args")
     allowed_users = arguments.get("ALLOWED_USERS")
     apt_proxy = arguments.get("--apt_proxy")
     setup_cmd = arguments.get("--setup_cmd")
     cleanup_cmd = arguments.get("--cleanup_cmd")
-
-    token = _get_github_token()
 
     analyzer = GitHubPullRequestAnalyzer(
         repo, token, allowed_users)

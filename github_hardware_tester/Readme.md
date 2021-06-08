@@ -1,7 +1,7 @@
 # Github Hardware Tests
 Example Usage:
 ```
-python3 main.py "PilzDE/psen_scan_v2" rfeistenauer agutenkunst --apt_proxy=http://172.20.20.104:3142 --docker_opts="-v /usr/local/share/ca-certificates:/usr/local/share/ca-certificates:ro --env HOST_IP=192.168.0.122 --env SENSOR_IP=192.168.0.100" --setup_cmd="usbrelay 1_1=0; sleep 2; usbrelay 1_1=1" --cleanup_cmd="usbrelay 1_1=0"
+python3 main.py "PilzDE/psen_scan_v2" rfeistenauer agutenkunst --token=INSERT_ACTUAL_TOKEN --apt_proxy=http://172.20.20.104:3142 --docker_opts="-v /usr/local/share/ca-certificates:/usr/local/share/ca-certificates:ro --env HOST_IP=192.168.0.122 --env SENSOR_IP=192.168.0.100" --setup_cmd="usbrelay 1_1=0; sleep 2; usbrelay 1_1=1" --cleanup_cmd="usbrelay 1_1=0"
 ```
 
 ## [Step 1.1] Local industrial_ci with real hardware (IN PROGRESS)
