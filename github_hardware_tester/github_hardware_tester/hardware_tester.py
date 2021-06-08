@@ -18,10 +18,6 @@ class HardwareTester(object):
         for pr in prs_to_check:
             self.check_pr(pr)
 
-    def _run_subprocess(self, command, dir):
-        print(subprocess.check_output(command.split(" "),
-              cwd=dir, stderr=subprocess.STDOUT).decode())
-
     def _get_log_file_name(self, pr) -> str:
         return "%s_%s" % (list(pr.get_commits())[-1].sha,
                           time.strftime("(%Y%b%d_%H:%M:%S)", time.localtime()))
@@ -31,14 +27,29 @@ class HardwareTester(object):
         pr.create_issue_comment("Starting a test for %s" % last_commit.sha)
         with PrintRedirector(Path(self._log_dir) / Path(self._get_log_file_name(pr))):
             with TemporaryDirectory() as t:
-                self._run_subprocess(
+                run_subprocess(
                     "git clone https://%s@github.com/rfeistenauer/test_project.git" % self._token, t)
                 repo_dir = os.path.join(t, self._repo)
-                self._run_subprocess(
+                run_subprocess(
                     "git config advice.detachedHead false", repo_dir)
-                self._run_subprocess(
+                run_subprocess(
                     "git fetch origin pull/%s/merge" % pr.number, repo_dir)
-                self._run_subprocess(
+                run_subprocess(
                     "git checkout FETCH_HEAD", repo_dir)
-        pr.create_issue_comment(
-            "Finished test of %s: Awesome!" % last_commit.sha[:7])
+                success, results = run_tests(repo_dir)
+        end_text = "Finished test of %s: %s\n\n%s" % (
+            last_commit.sha[:7], "SUCCESSFULL" if success else "WITH ERRORS", results)
+        print(end_text)
+        pr.create_issue_comment(end_text)
+
+
+def run_subprocess(command, dir):
+    print(subprocess.check_output(command.split(" "),
+                                  cwd=dir, stderr=subprocess.STDOUT).decode())
+
+
+def run_tests(dir):
+    success = False
+    results = "Error"
+    # ▶ rosrun industrial_ci run_ci ROS_DISTRO=noetic ROS_REPO=main DOCKER_RUN_OPTS="-v /usr/local/share/ca-certificates:/usr/local/share/ca-certificates:ro" APT_PROXY="http://172.20.20.104:3142"
+    return success, results
