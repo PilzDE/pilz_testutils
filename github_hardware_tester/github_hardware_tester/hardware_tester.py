@@ -49,7 +49,23 @@ def run_subprocess(command, dir):
 
 
 def run_tests(dir):
-    success = False
-    results = "Error"
+    env = os.environ.copy()
+    env['ROS_DISTRO'] = 'noetic'
+    env['ROS_REPO'] = 'main'
+
+    # Needed for company environment
+    #env['DOCKER_RUN_OPTS'] = "-v /usr/local/share/ca-certificates:/usr/local/share/ca-certificates:ro"
+    #env['APT_PROXY']="http://172.20.20.104:3142"
+
+    # Needed for real system
+    #env['CMAKE_ARGS'] =  "-DENABLE_HARDWARE_TESTING=ON"
+    #env['DOCKER_RUN_OPTS'] = "--env HOST_IP=192.168.0.122 --env SENSOR_IP=192.168.0.100 -p 55115:55115/udp -p 55116:55116/udp"
+
+    # Needs sources ROS and path to industrial_ci
+    command = 'rosrun industrial_ci run_ci'
+    print('Running {}'.format(command))
+    p = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, cwd=os.path.expanduser(dir))
+    stdout_data, stderr_data = p.communicate()
+    #print(stdout_data.decode('utf-8'))
     # ▶ rosrun industrial_ci run_ci ROS_DISTRO=noetic ROS_REPO=main DOCKER_RUN_OPTS="-v /usr/local/share/ca-certificates:/usr/local/share/ca-certificates:ro" APT_PROXY="http://172.20.20.104:3142"
-    return success, results
+    return p.returncode, stdout_data.decode('utf-8')
