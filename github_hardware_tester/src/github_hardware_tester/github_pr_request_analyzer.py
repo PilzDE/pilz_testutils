@@ -1,9 +1,12 @@
 from github import Github
+from github.PullRequest import PullRequest
+from github.Repository import Repository
+from github.PullRequestPart import PullRequestPart
 import time
 import datetime
 
 ENABLE_TEXT = "* [ ] Perform hardware tests"
-ALLOW_TEXT = "Allow hw-tests for "
+ALLOW_TEXT = "Allow hw-tests up to commit "
 
 # pr.create_issue_comment("Thank you!")
 
@@ -13,7 +16,7 @@ class GitHubPullRequestAnalyzer(object):
         super().__init__(*args, **kwargs)
         g = Github(token)
         self._repo = g.get_repo(repo)
-        self._current_pr = None
+        self._current_pr : PullRequest = None
         self._allowed_users = allowed_users
 
     def get_testable_pull_requests(self):
@@ -22,18 +25,15 @@ class GitHubPullRequestAnalyzer(object):
         for pr in self._repo.get_pulls():
             self._current_pr = pr
             if self._validate_pr():
-                print("PR: #", pr.number, " is enabled and ready for testing")
+                print("PR: #%s is enabled and ready for testing" % pr.number)
                 testable_pull_requests.append(pr)
         return testable_pull_requests
 
     def _validate_pr(self):
         return self._current_pr.state == "open" \
-            and self._tests_enabled() \
-            and self._critical_commits_permitted() \
+            and self._description_contain_enable_string() \
+            and self._pr_is_allowed() \
             and self._not_tested_yet()
-
-    def _get_datetime_from_str(self, last_change_str) -> datetime.datetime:
-        return datetime.datetime.strptime(last_change_str, "%a, %d %b %Y %H:%M:%S GMT")
 
     def _not_tested_yet(self):
         last_commit = list(self._current_pr.get_commits())[-1]
@@ -44,36 +44,19 @@ class GitHubPullRequestAnalyzer(object):
                 return False
         return True
 
-    def _critical_commits_permitted(self):
-        critical_commits = []
-        for c in self._current_pr.get_commits():
-            if c.author.login not in self._allowed_users:
-                critical_commits.append(c)
-        self._delete_permitted_commits(critical_commits)
-        if len(critical_commits) > 0:
-            print("PR: #%s has %s critical commits without permission" %
-                  (self._current_pr.number, len(critical_commits)))
-        return len(critical_commits) == 0
+    def _pr_is_internal(self):
+        return self._current_pr.base.repo.full_name == self._current_pr.head.repo.full_name
 
-    def _tests_enabled(self):
+    def _pr_is_allowed(self):
+        return self._pr_is_internal() or self._head_commit_is_allowed_by_comment()
+
+    def _head_commit_is_allowed_by_comment(self):
+        for c in self._current_pr.get_issue_comments():
+            if c.user.login in self._allowed_users and c.body.find(ALLOW_TEXT + self._current_pr.head.sha) != -1:
+                return True
+
+    def _description_contain_enable_string(self):
         if self._current_pr.body.find(ENABLE_TEXT) != -1:
             return True
         print("PR: #%s requests no hardware-test" % self._current_pr.number)
         return False
-
-    def _read_comments(self):
-        pr_comments = []
-        for c in self._current_pr.get_issue_comments():
-            pr_comments.append(c)
-        for r in self._current_pr.get_reviews():
-            pr_comments.append(r)
-        for c in self._current_pr.get_review_comments():
-            pr_comments.append(c)
-        return pr_comments
-
-    def _delete_permitted_commits(self, critical_commits):
-        for c in self._read_comments():
-            for cc in critical_commits.copy():
-                if c.user.login in self._allowed_users \
-                   and c.body.find(ALLOW_TEXT + cc.sha[:7]) != -1:
-                    critical_commits.remove(cc)
