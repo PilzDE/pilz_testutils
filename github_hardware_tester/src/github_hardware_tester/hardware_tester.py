@@ -28,37 +28,45 @@ class HardwareTester(object):
                           time.strftime("(%Y%b%d_%H:%M:%S)", time.localtime()))
 
     def check_pr(self, pr):
+        print("Starting test of PR #%s" % pr.number)
         last_commit = list(pr.get_commits())[-1]
         pr.create_issue_comment("Starting a test for %s" % last_commit.sha)
         if self._setup_cmd:
-            subprocess.check_output(
-                self._setup_cmd, stderr=subprocess.STDOUT, shell=True)
+            run_command(self._setup_cmd)
         with PrintRedirector(Path(self._log_dir) / Path(self._get_log_file_name(pr))):
             with TemporaryDirectory() as t:
-                run_subprocess(
-                    "git clone https://%s@github.com/%s.git" % (self._token, self._repo), t)
+                run_command(
+                    "git clone https://%s@github.com/%s.git" % (self._token, self._repo), cwd=t)
                 repo_dir = os.path.join(t, self._repo.split("/")[1])
-                run_subprocess(
-                    "git config advice.detachedHead false", repo_dir)
-                run_subprocess(
-                    "git fetch origin pull/%s/merge" % pr.number, repo_dir)
-                run_subprocess(
-                    "git checkout FETCH_HEAD", repo_dir)
-                result, test_output = run_tests(
+                run_command(
+                    "git config advice.detachedHead false", cwd=repo_dir)
+                run_command(
+                    "git fetch origin pull/%s/merge" % pr.number, cwd=repo_dir)
+                run_command(
+                    "git checkout FETCH_HEAD", cwd=repo_dir)
+                result = run_tests(
                     repo_dir, self._docker_opts, self._cmake_args, self._apt_proxy)
-                print(test_output)
         end_text = "Finished test of %s: %s" % (
             last_commit.sha[:7], "SUCCESSFULL" if not result else "WITH %s FAILURES" % result)
         print(end_text)
         pr.create_issue_comment(end_text)
         if self._cleanup_cmd:
-            subprocess.check_output(
-                self._cleanup_cmd, stderr=subprocess.STDOUT, shell=True)
+            run_command(self._cleanup_cmd)
 
 
-def run_subprocess(command, dir):
-    print(subprocess.check_output(command.split(" "),
-                                  cwd=dir, stderr=subprocess.STDOUT).decode())
+def run_command(command, **kwargs):
+    print("\n%s\nExecuting: %s\n" % (">"*50, command))
+    process = subprocess.Popen(
+        command, stdout=subprocess.PIPE, shell=True, **kwargs)
+    while True:
+        output = process.stdout.readline().decode()
+        if output == '' and process.poll() is not None:
+            break
+        if output:
+            print(output.strip())
+    rc = process.poll()
+    print("<"*50)
+    return rc
 
 
 def run_tests(dir, docker_opts, cmake_args, apt_proxy):
@@ -75,9 +83,4 @@ def run_tests(dir, docker_opts, cmake_args, apt_proxy):
     # Needs sources ROS and path to industrial_ci
     command = 'rosrun industrial_ci run_ci'
     print('Running {}'.format(command))
-    p = subprocess.Popen(command.split(), stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT, env=env, cwd=os.path.expanduser(dir))
-    stdout_data, stderr_data = p.communicate()
-    # print(stdout_data.decode('utf-8'))
-    # ▶ rosrun industrial_ci run_ci ROS_DISTRO=noetic ROS_REPO=main DOCKER_RUN_OPTS="-v /usr/local/share/ca-certificates:/usr/local/share/ca-certificates:ro" APT_PROXY="http://172.20.20.104:3142"
-    return p.returncode, stdout_data.decode('utf-8')
+    return run_command(command, env=env, cwd=os.path.expanduser(dir))

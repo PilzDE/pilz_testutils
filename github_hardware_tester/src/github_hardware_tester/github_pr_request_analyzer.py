@@ -1,32 +1,28 @@
 from github import Github
 from github.PullRequest import PullRequest
 from github.Repository import Repository
-from github.PullRequestPart import PullRequestPart
-import time
-import datetime
 
 ENABLE_TEXT = "* [ ] Perform hardware tests"
 ALLOW_TEXT = "Allow hw-tests up to commit "
-
-# pr.create_issue_comment("Thank you!")
 
 
 class GitHubPullRequestAnalyzer(object):
     def __init__(self, repo, token, allowed_users, *args, **kwargs):
         super().__init__(*args, **kwargs)
         g = Github(token)
-        self._repo = g.get_repo(repo)
-        self._current_pr : PullRequest = None
+        self._repo: Repository = g.get_repo(repo)
+        self._current_pr: PullRequest = None
         self._allowed_users = allowed_users
 
     def get_testable_pull_requests(self):
         testable_pull_requests = []
-        print("="*30)
+        print("%s\nSearching for PRs to test.\n" % ">"*50)
         for pr in self._repo.get_pulls():
             self._current_pr = pr
             if self._validate_pr():
                 print("PR: #%s is enabled and ready for testing" % pr.number)
                 testable_pull_requests.append(pr)
+        print("<"*50)
         return testable_pull_requests
 
     def _validate_pr(self):
