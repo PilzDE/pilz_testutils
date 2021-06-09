@@ -29,6 +29,8 @@ Options:
 
 
 from github_hardware_tester import GitHubPullRequestAnalyzer, ask_user_for_pr_to_check, HardwareTester
+from github_hardware_tester.print_redirector import PrintRedirector
+from pathlib import Path
 import os
 import sys
 import time
@@ -74,8 +76,9 @@ if __name__ == "__main__":
                             cleanup_cmd=cleanup_cmd)
 
     with contextlib.suppress(KeyboardInterrupt):
-        if not loop_time:
-            tester.check_prs(ask_user_for_pr_to_check(
-                analyzer.get_testable_pull_requests()))
-        else:
-            check_and_execute_loop(loop_time)
+        with PrintRedirector(Path(log_dir) / Path("stdout.log")):
+            if not loop_time:
+                tester.check_prs(ask_user_for_pr_to_check(
+                    analyzer.get_testable_pull_requests()))
+            else:
+                check_and_execute_loop(loop_time)

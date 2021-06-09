@@ -24,8 +24,8 @@ class HardwareTester(object):
             self.check_pr(pr)
 
     def _get_log_file_name(self, pr) -> str:
-        return "%s_%s" % (list(pr.get_commits())[-1].sha,
-                          time.strftime("(%Y%b%d_%H:%M:%S)", time.localtime()))
+        return "%s_%s.log" % (list(pr.get_commits())[-1].sha,
+                              time.strftime("(%Y%b%d_%H:%M:%S)", time.localtime()))
 
     def check_pr(self, pr):
         print("Starting test of PR #%s" % pr.number)
