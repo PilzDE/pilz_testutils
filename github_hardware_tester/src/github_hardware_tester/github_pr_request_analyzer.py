@@ -16,7 +16,7 @@ class GitHubPullRequestAnalyzer(object):
 
     def get_testable_pull_requests(self):
         testable_pull_requests = []
-        print("%s\nSearching for PRs to test.\n" % ">"*50)
+        print("%s\nSearching for PRs to test.\n" % (">"*50))
         for pr in self._repo.get_pulls():
             self._current_pr = pr
             if self._validate_pr():
