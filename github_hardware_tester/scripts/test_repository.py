@@ -3,7 +3,7 @@
 """Automated Hardware Testing
 
 Usage:
-    github_hardware_tester.py REPO ALLOWED_USERS ... --token=TOKEN
+    github_hardware_tester.py REPO ALLOWED_USERS ...
         [--log=LOG_DIR]
         [--docker_opts=DOCKER_OPTS]
         [--apt_proxy=APT_PROXY]
@@ -11,13 +11,13 @@ Usage:
         [--setup_cmd=SETUP_CMD]
         [--cleanup_cmd=SETUP_CMD]
         [--loop_time=MIN_TIME_IN_SEC]
+    github_hardware_tester.py set-token
 
    e.g. github_hardware_tester.py max/awesome_repo max theOtherOne AwesomeGuy
 
 Options:
     -h --help                    Show this
     --log=LOG_DIR                Test log directory [default: ~/.ros/hardware_tests/]
-    --token=TOKEN                GitHub personal access token with "public_repo" scope
     --docker_opts=DOCKER_OPTS    Options that will be passed to the industrial ci
     --cmake_args=CMAKE_ARGS      Arguments that will be passed to the cmake run
     --apt_proxy=APT_PROXY
@@ -36,9 +36,27 @@ import sys
 import time
 import docopt
 import contextlib
+import keyring
+from getpass import getpass
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
+def set_token():
+    token = None
+    while not token:
+        print("Please provide a GitHub personal access token with 'public_repo' permission.")
+        new_token = getpass(prompt='personal access token:')
+        keyring.set_password('system', 'github-hardware-tester-token', new_token)
+        token = keyring.get_password('system', 'github-hardware-tester-token')
+        if not token:
+            print("There was an issue storing the token in the keyring!")
+    return token
+
+def get_token():
+    keyring.set_keyring(keyring.backends.SecretService.Keyring()) # For Ubuntu 20
+    token = keyring.get_password('system', 'github-hardware-tester-token')
+    if not token:
+        token = set_token()
 
 def check_and_execute_loop(loop_time):
     while True:
@@ -53,9 +71,16 @@ def check_and_execute_loop(loop_time):
 if __name__ == "__main__":
     arguments = docopt.docopt(__doc__)
     print(arguments)
+
+    if arguments.get('set-token'):
+        if set_token():
+            exit(1)
+        else:
+            exit(0)
+
     repo = arguments.get("REPO")
     log_dir = os.path.expanduser(arguments.get("--log"))
-    token = arguments.get("--token")
+    token = get_token()
     docker_opts = arguments.get("--docker_opts")
     cmake_args = arguments.get("--cmake_args")
     allowed_users = arguments.get("ALLOWED_USERS")
