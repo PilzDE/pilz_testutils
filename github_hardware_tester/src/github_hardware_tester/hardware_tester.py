@@ -47,7 +47,7 @@ class HardwareTester(object):
                 result = run_tests(
                     repo_dir, self._docker_opts, self._cmake_args, self._apt_proxy)
         end_text = "Finished test of %s: %s" % (
-            last_commit.sha[:7], "SUCCESSFULL" if not result else "WITH %s FAILURES" % result)
+            last_commit.sha, "SUCCESSFULL" if not result else "WITH %s FAILURES" % result)
         print(end_text)
         pr.create_issue_comment(end_text)
         if self._cleanup_cmd:

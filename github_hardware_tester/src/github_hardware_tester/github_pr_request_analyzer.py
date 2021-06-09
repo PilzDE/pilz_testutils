@@ -1,58 +1,68 @@
 from github import Github
 from github.PullRequest import PullRequest
-from github.Repository import Repository
 
 ENABLE_TEXT = "* [ ] Perform hardware tests"
 ALLOW_TEXT = "Allow hw-tests up to commit "
 
 
-class GitHubPullRequestAnalyzer(object):
-    def __init__(self, repo, token, allowed_users, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        g = Github(token)
-        self._repo: Repository = g.get_repo(repo)
-        self._current_pr: PullRequest = None
-        self._allowed_users = allowed_users
+class PullRequestValidator(PullRequest):
+    def validate(self, allowed_users):
+        self.is_internal = self._is_internal()
+        self.head_commit_is_allowed = self._head_commit_is_allowed_by_comment(
+            allowed_users)
+        self.requests_tests = self._description_contain_enable_string()
+        self.head_is_untested = self._not_tested_yet(allowed_users)
 
-    def get_testable_pull_requests(self):
-        testable_pull_requests = []
-        print("%s\nSearching for PRs to test.\n" % (">"*50))
-        for pr in self._repo.get_pulls():
-            self._current_pr = pr
-            if self._validate_pr():
-                print("PR: #%s is enabled and ready for testing" % pr.number)
-                testable_pull_requests.append(pr)
-        print("<"*50)
-        return testable_pull_requests
+    def is_valid(self):
+        return self.state == "open" \
+            and self.requests_tests \
+            and self._is_allowed() \
+            and self.head_is_untested
 
-    def _validate_pr(self):
-        return self._current_pr.state == "open" \
-            and self._description_contain_enable_string() \
-            and self._pr_is_allowed() \
-            and self._not_tested_yet()
+    def _is_allowed(self):
+        return self.is_internal or self.head_commit_is_allowed
 
-    def _not_tested_yet(self):
-        last_commit = list(self._current_pr.get_commits())[-1]
-        for c in self._current_pr.get_issue_comments():
-            if c.user.login in self._allowed_users \
-               and c.body.startswith("Finished test of %s" % last_commit.sha[:7]):
-                print("PR: #%s is already tested" % self._current_pr.number)
+    def _description_contain_enable_string(self):
+        if self.body.find(ENABLE_TEXT) != -1:
+            return True
+        return False
+
+    def _is_internal(self):
+        return self.base.repo.full_name == self.head.repo.full_name
+
+    def _head_commit_is_allowed_by_comment(self, allowed_users):
+        for c in self.get_issue_comments():
+            if c.user.login in allowed_users and c.body.find(ALLOW_TEXT + self.head.sha) != -1:
+                return True
+
+    def _not_tested_yet(self, allowed_users):
+        for c in self.get_issue_comments():
+            if c.user.login in allowed_users \
+               and c.body.startswith("Finished test of %s" % self.head.sha):
                 return False
         return True
 
-    def _pr_is_internal(self):
-        return self._current_pr.base.repo.full_name == self._current_pr.head.repo.full_name
+    def status(self) -> str:
+        s = "PR #%s " % self.number
+        if not self.requests_tests:
+            s += "is not enabled for testing."
+        elif not self.is_internal and not self.head_commit_is_allowed:
+            s += "is an external PR. The head commit needs to be accepted."
+        elif not self.head_is_untested:
+            s += "has no untested changes."
+        else:
+            s += "is enabled and ready for testing."
+        return s
 
-    def _pr_is_allowed(self):
-        return self._pr_is_internal() or self._head_commit_is_allowed_by_comment()
 
-    def _head_commit_is_allowed_by_comment(self):
-        for c in self._current_pr.get_issue_comments():
-            if c.user.login in self._allowed_users and c.body.find(ALLOW_TEXT + self._current_pr.head.sha) != -1:
-                return True
-
-    def _description_contain_enable_string(self):
-        if self._current_pr.body.find(ENABLE_TEXT) != -1:
-            return True
-        print("PR: #%s requests no hardware-test" % self._current_pr.number)
-        return False
+def get_testable_pull_requests(token, repo, allowed_users):
+    testable_pull_requests = []
+    print("%s\nSearching for PRs to test.\n" % (">"*50))
+    for pr in Github(token).get_repo(repo).get_pulls():
+        pr.__class__ = PullRequestValidator
+        pr.validate(allowed_users)
+        print(pr.status())
+        if pr.is_valid():
+            testable_pull_requests.append(pr)
+    print("<"*50)
+    return testable_pull_requests

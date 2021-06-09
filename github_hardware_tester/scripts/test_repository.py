@@ -28,7 +28,7 @@ Options:
 """
 
 
-from github_hardware_tester import GitHubPullRequestAnalyzer, ask_user_for_pr_to_check, HardwareTester
+from github_hardware_tester import get_testable_pull_requests, ask_user_for_pr_to_check, HardwareTester
 from github_hardware_tester.print_redirector import PrintRedirector
 from pathlib import Path
 import os
@@ -41,27 +41,34 @@ from getpass import getpass
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
+
 def set_token():
     token = None
     while not token:
-        print("Please provide a GitHub personal access token with 'public_repo' permission.")
+        print(
+            "Please provide a GitHub personal access token with 'public_repo' permission.")
         new_token = getpass(prompt='personal access token:')
-        keyring.set_password('system', 'github-hardware-tester-token', new_token)
+        keyring.set_password(
+            'system', 'github-hardware-tester-token', new_token)
         token = keyring.get_password('system', 'github-hardware-tester-token')
         if not token:
             print("There was an issue storing the token in the keyring!")
     return token
 
+
 def get_token():
-    keyring.set_keyring(keyring.backends.SecretService.Keyring()) # For Ubuntu 20
+    keyring.set_keyring(
+        keyring.backends.SecretService.Keyring())  # For Ubuntu 20
     token = keyring.get_password('system', 'github-hardware-tester-token')
     if not token:
         token = set_token()
 
+
 def check_and_execute_loop(loop_time):
     while True:
         start = time.time()
-        tester.check_prs(analyzer.get_testable_pull_requests())
+        tester.check_prs(get_testable_pull_requests(
+            token, repo, allowed_users))
         end = time.time()
         remain = int(loop_time) - (end - start)
         if remain > 0:
@@ -70,7 +77,7 @@ def check_and_execute_loop(loop_time):
 
 if __name__ == "__main__":
     arguments = docopt.docopt(__doc__)
-    print(arguments)
+    print(arguments, "\n")
 
     if arguments.get('set-token'):
         if set_token():
@@ -89,8 +96,6 @@ if __name__ == "__main__":
     cleanup_cmd = arguments.get("--cleanup_cmd")
     loop_time = arguments.get("--loop_time", None)
 
-    analyzer = GitHubPullRequestAnalyzer(
-        repo, token, allowed_users)
     tester = HardwareTester(docker_opts=docker_opts,
                             cmake_args=cmake_args,
                             token=token,
@@ -100,10 +105,23 @@ if __name__ == "__main__":
                             setup_cmd=setup_cmd,
                             cleanup_cmd=cleanup_cmd)
 
+    desciption = """
+    To enable Testing in a PullRequest(PR) add '* [ ] Perform hardware tests' to your PR description.
+
+    Only internal PRs will be tested by default.
+    To allow testing on PRs from forks, a User in the ALLOWED_USERS list has to accept the head commit of this PR.
+    To allow the head commit write a comment with: 'Allow hw-tests up to commit [sha]'
+        [sha] has to equal the full sha of the last commit in this PR.
+
+    For further Information see https://github.com/PilzDE/pilz_testutils/github_hardware_tester.
+
+    """
+    print(desciption)
+
     with contextlib.suppress(KeyboardInterrupt):
         with PrintRedirector(Path(log_dir) / Path("stdout.log")):
             if not loop_time:
                 tester.check_prs(ask_user_for_pr_to_check(
-                    analyzer.get_testable_pull_requests()))
+                    get_testable_pull_requests(token, repo, allowed_users)))
             else:
                 check_and_execute_loop(loop_time)
