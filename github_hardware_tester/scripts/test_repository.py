@@ -10,36 +10,45 @@ Usage:
         [--cmake_args=CMAKE_ARGS]
         [--setup_cmd=SETUP_CMD]
         [--cleanup_cmd=SETUP_CMD]
+        [--loop_time=MIN_TIME_IN_SEC]
 
    e.g. github_hardware_tester.py max/awesome_repo max theOtherOne AwesomeGuy
 
 Options:
-    -h --help                   show this
-    --log=LOG_DIR               test log directory [default: ~/.ros/hardware_tests/]
-    --token=TOKEN               GitHub personal access token with "public_repo" scope
-    --docker_opts=DOCKER_OPTS   options that will be passed to the industrial ci
-    --cmake_args=CMAKE_ARGS     arguments that will be passed to the cmake run
+    -h --help                    Show this
+    --log=LOG_DIR                Test log directory [default: ~/.ros/hardware_tests/]
+    --token=TOKEN                GitHub personal access token with "public_repo" scope
+    --docker_opts=DOCKER_OPTS    Options that will be passed to the industrial ci
+    --cmake_args=CMAKE_ARGS      Arguments that will be passed to the cmake run
     --apt_proxy=APT_PROXY
-    --setup_cmd=SETUP_CMD       command to run before starting industrial_ci e.g. for starting hardware
-    --cleanup_cmd=CLEANUP_CMD   command to run after industrial_ci has finished e.g. for stopping hardware
+    --setup_cmd=SETUP_CMD        Command to run before starting industrial_ci e.g. for starting hardware
+    --cleanup_cmd=CLEANUP_CMD    Command to run after industrial_ci has finished e.g. for stopping hardware
+    --loop_time=MIN_TIME_IN_SEC  If set automatically searches valid pull requests and executes the tests continuosly.
+                                 The argument provided is the minimum repeat time of the loop in seconds.
 """
 
 
 from github_hardware_tester import GitHubPullRequestAnalyzer, ask_user_for_pr_to_check, HardwareTester
 import os
 import sys
+import time
 import docopt
 import contextlib
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 
-def _define_args():
-    pass
+def check_and_execute_loop(loop_time):
+    while True:
+        start = time.time()
+        tester.check_prs(analyzer.get_testable_pull_requests())
+        end = time.time()
+        remain = int(loop_time) - (end - start)
+        if remain > 0:
+            time.sleep(remain)
 
 
 if __name__ == "__main__":
-    # print(sys.argv[1:])
     arguments = docopt.docopt(__doc__)
     print(arguments)
     repo = arguments.get("REPO")
@@ -51,6 +60,7 @@ if __name__ == "__main__":
     apt_proxy = arguments.get("--apt_proxy")
     setup_cmd = arguments.get("--setup_cmd")
     cleanup_cmd = arguments.get("--cleanup_cmd")
+    loop_time = arguments.get("--loop_time", None)
 
     analyzer = GitHubPullRequestAnalyzer(
         repo, token, allowed_users)
@@ -64,5 +74,8 @@ if __name__ == "__main__":
                             cleanup_cmd=cleanup_cmd)
 
     with contextlib.suppress(KeyboardInterrupt):
-        tester.check_prs(ask_user_for_pr_to_check(
-            analyzer.get_testable_pull_requests()))
+        if not loop_time:
+            tester.check_prs(ask_user_for_pr_to_check(
+                analyzer.get_testable_pull_requests()))
+        else:
+            check_and_execute_loop(loop_time)
