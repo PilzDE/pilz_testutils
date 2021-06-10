@@ -5,12 +5,12 @@ ALLOW_TEXT = "Allow hw-tests up to commit "
 
 
 class PullRequestValidator(PullRequest):
-    def validate(self, allowed_users):
+    def validate(self, allowed_users, test_bot_account):
         self.is_internal = self._is_internal()
         self.head_commit_is_allowed = self._head_commit_is_allowed_by_comment(
             allowed_users)
         self.requests_tests = self._description_contain_enable_string()
-        self.head_is_untested = self._not_tested_yet(allowed_users)
+        self.head_is_untested = self._not_tested_yet(test_bot_account)
 
     def is_valid(self):
         return self.state == "open" \
@@ -34,9 +34,9 @@ class PullRequestValidator(PullRequest):
             if c.user.login in allowed_users and c.body.find(ALLOW_TEXT + self.head.sha) != -1:
                 return True
 
-    def _not_tested_yet(self, allowed_users):
+    def _not_tested_yet(self, test_bot_account):
         for c in self.get_issue_comments():
-            if c.user.login == "PilzHardwareTestBot" \
+            if c.user.login == test_bot_account \
                and c.body.startswith("Finished test of %s" % self.head.sha):
                 return False
         return True
@@ -54,12 +54,12 @@ class PullRequestValidator(PullRequest):
         return s
 
 
-def get_testable_pull_requests(repo, allowed_users):
+def get_testable_pull_requests(repo, allowed_users, test_bot_account):
     testable_pull_requests = []
     print("%s\nSearching for PRs to test.\n" % (">"*50))
     for pr in repo.get_pulls():
         pr.__class__ = PullRequestValidator
-        pr.validate(allowed_users)
+        pr.validate(allowed_users, test_bot_account)
         print(pr.status())
         if pr.is_valid():
             testable_pull_requests.append(pr)

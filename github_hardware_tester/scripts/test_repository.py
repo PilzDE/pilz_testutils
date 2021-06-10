@@ -72,7 +72,7 @@ def get_token():
 def check_and_execute_loop(loop_time):
     while True:
         start = time.time()
-        tester.check_prs(get_testable_pull_requests(repo, allowed_users))
+        tester.check_prs(get_testable_pull_requests(repo, allowed_users, test_bot_account))
         end = time.time()
         remain = int(loop_time) - (end - start)
         if remain > 0:
@@ -91,7 +91,9 @@ if __name__ == "__main__":
 
     token = get_token()
     try:
-        repo = github.Github(token).get_repo(arguments.get("REPO"))
+        gh = github.Github(token)
+        test_bot_account = gh.get_user().login
+        repo = gh.get_repo(arguments.get("REPO"))
     except UnknownObjectException:
         print("Repository not found! Please check the spelling of the REPO argument")
         exit(1)
@@ -130,7 +132,7 @@ if __name__ == "__main__":
             with PrintRedirector(Path(log_dir) / Path("stdout.log")):
                 if not loop_time:
                     tester.check_prs(ask_user_for_pr_to_check(
-                        get_testable_pull_requests(repo, allowed_users)))
+                        get_testable_pull_requests(repo, allowed_users, test_bot_account)))
                 else:
                     check_and_execute_loop(loop_time)
         except RateLimitExceededException:
