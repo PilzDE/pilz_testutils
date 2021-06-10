@@ -41,7 +41,6 @@ import keyring
 
 from pathlib import Path
 from getpass import getpass
-from github.GithubException import RateLimitExceededException
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
@@ -90,8 +89,7 @@ if __name__ == "__main__":
             exit(0)
 
     token = get_token()
-    github = github.Github(token)
-    repo = github.get_repo(arguments.get("REPO"))
+    repo = github.Github(token).get_repo(arguments.get("REPO"))
     log_dir = os.path.expanduser(arguments.get("--log"))
     docker_opts = arguments.get("--docker_opts")
     cmake_args = arguments.get("--cmake_args")
@@ -130,5 +128,5 @@ if __name__ == "__main__":
                         get_testable_pull_requests(repo, allowed_users)))
                 else:
                     check_and_execute_loop(loop_time)
-        except RateLimitExceededException:
+        except github.GithubException.RateLimitExceededException:
             print("Reached a rate limit on Github please try again later.")
