@@ -41,6 +41,7 @@ import keyring
 
 from pathlib import Path
 from getpass import getpass
+from github.GithubException import RateLimitExceededException, UnknownObjectException
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
@@ -89,7 +90,11 @@ if __name__ == "__main__":
             exit(0)
 
     token = get_token()
-    repo = github.Github(token).get_repo(arguments.get("REPO"))
+    try:
+        repo = github.Github(token).get_repo(arguments.get("REPO"))
+    except UnknownObjectException:
+        print("Repository not found! Please check the spelling of the REPO argument")
+        exit(1)
     log_dir = os.path.expanduser(arguments.get("--log"))
     docker_opts = arguments.get("--docker_opts")
     cmake_args = arguments.get("--cmake_args")
@@ -128,5 +133,5 @@ if __name__ == "__main__":
                         get_testable_pull_requests(repo, allowed_users)))
                 else:
                     check_and_execute_loop(loop_time)
-        except github.GithubException.RateLimitExceededException:
+        except RateLimitExceededException:
             print("Reached a rate limit on Github please try again later.")
