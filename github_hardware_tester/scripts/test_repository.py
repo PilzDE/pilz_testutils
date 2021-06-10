@@ -30,14 +30,18 @@ Options:
 
 from github_hardware_tester import get_testable_pull_requests, ask_user_for_pr_to_check, HardwareTester
 from github_hardware_tester.print_redirector import PrintRedirector
-from pathlib import Path
+
 import os
 import sys
 import time
 import docopt
+import github
 import contextlib
 import keyring
+
+from pathlib import Path
 from getpass import getpass
+from github.GithubException import RateLimitExceededException
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
@@ -62,13 +66,13 @@ def get_token():
     token = keyring.get_password('system', 'github-hardware-tester-token')
     if not token:
         token = set_token()
+    return token
 
 
 def check_and_execute_loop(loop_time):
     while True:
         start = time.time()
-        tester.check_prs(get_testable_pull_requests(
-            token, repo, allowed_users))
+        tester.check_prs(get_testable_pull_requests(repo, allowed_users))
         end = time.time()
         remain = int(loop_time) - (end - start)
         if remain > 0:
@@ -85,9 +89,10 @@ if __name__ == "__main__":
         else:
             exit(0)
 
-    repo = arguments.get("REPO")
-    log_dir = os.path.expanduser(arguments.get("--log"))
     token = get_token()
+    github = github.Github(token)
+    repo = github.get_repo(arguments.get("REPO"))
+    log_dir = os.path.expanduser(arguments.get("--log"))
     docker_opts = arguments.get("--docker_opts")
     cmake_args = arguments.get("--cmake_args")
     allowed_users = arguments.get("ALLOWED_USERS")
@@ -100,7 +105,6 @@ if __name__ == "__main__":
                             cmake_args=cmake_args,
                             token=token,
                             apt_proxy=apt_proxy,
-                            repo=repo,
                             log_dir=log_dir,
                             setup_cmd=setup_cmd,
                             cleanup_cmd=cleanup_cmd)
@@ -119,9 +123,12 @@ if __name__ == "__main__":
     print(desciption)
 
     with contextlib.suppress(KeyboardInterrupt):
-        with PrintRedirector(Path(log_dir) / Path("stdout.log")):
-            if not loop_time:
-                tester.check_prs(ask_user_for_pr_to_check(
-                    get_testable_pull_requests(token, repo, allowed_users)))
-            else:
-                check_and_execute_loop(loop_time)
+        try:
+            with PrintRedirector(Path(log_dir) / Path("stdout.log")):
+                if not loop_time:
+                    tester.check_prs(ask_user_for_pr_to_check(
+                        get_testable_pull_requests(repo, allowed_users)))
+                else:
+                    check_and_execute_loop(loop_time)
+        except RateLimitExceededException:
+            print("Reached a rate limit on Github please try again later.")

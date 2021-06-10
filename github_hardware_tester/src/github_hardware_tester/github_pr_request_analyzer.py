@@ -1,4 +1,3 @@
-from github import Github
 from github.PullRequest import PullRequest
 
 ENABLE_TEXT = "* [ ] Perform hardware tests"
@@ -55,10 +54,10 @@ class PullRequestValidator(PullRequest):
         return s
 
 
-def get_testable_pull_requests(token, repo, allowed_users):
+def get_testable_pull_requests(repo, allowed_users):
     testable_pull_requests = []
     print("%s\nSearching for PRs to test.\n" % (">"*50))
-    for pr in Github(token).get_repo(repo).get_pulls():
+    for pr in repo.get_pulls():
         pr.__class__ = PullRequestValidator
         pr.validate(allowed_users)
         print(pr.status())

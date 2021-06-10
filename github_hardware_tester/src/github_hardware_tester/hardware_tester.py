@@ -8,10 +8,9 @@ import subprocess
 
 
 class HardwareTester(object):
-    def __init__(self, token, repo, log_dir, cmake_args, docker_opts, apt_proxy, setup_cmd, cleanup_cmd, *args, **kwargs):
+    def __init__(self, token, log_dir, cmake_args, docker_opts, apt_proxy, setup_cmd, cleanup_cmd, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._token = token
-        self._repo = repo
         self._log_dir = log_dir
         self._docker_opts = docker_opts
         self._cmake_args = cmake_args
@@ -28,16 +27,16 @@ class HardwareTester(object):
                               time.strftime("(%Y%b%d_%H:%M:%S)", time.localtime()))
 
     def check_pr(self, pr):
+        repo = pr.base.repo
         print("Starting test of PR #%s" % pr.number)
-        last_commit = list(pr.get_commits())[-1]
-        pr.create_issue_comment("Starting a test for %s" % last_commit.sha)
+        pr.create_issue_comment("Starting a test for %s" % pr.head.sha)
         if self._setup_cmd:
             run_command(self._setup_cmd)
         with PrintRedirector(Path(self._log_dir) / Path(self._get_log_file_name(pr))):
             with TemporaryDirectory() as t:
                 run_command(
-                    "git clone https://%s@github.com/%s.git" % (self._token, self._repo), cwd=t)
-                repo_dir = os.path.join(t, self._repo.split("/")[1])
+                    "git clone https://%s@github.com/%s.git" % (self._token, repo.full_name), cwd=t)
+                repo_dir = os.path.join(t, repo.name)
                 run_command(
                     "git config advice.detachedHead false", cwd=repo_dir)
                 run_command(
@@ -47,7 +46,7 @@ class HardwareTester(object):
                 result = run_tests(
                     repo_dir, self._docker_opts, self._cmake_args, self._apt_proxy)
         end_text = "Finished test of %s: %s" % (
-            last_commit.sha, "SUCCESSFULL" if not result else "WITH %s FAILURES" % result)
+            pr.head.sha, "SUCCESSFULL" if not result else "WITH %s FAILURES" % result)
         print(end_text)
         pr.create_issue_comment(end_text)
         if self._cleanup_cmd:
