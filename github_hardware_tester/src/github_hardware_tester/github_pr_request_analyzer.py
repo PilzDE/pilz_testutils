@@ -36,7 +36,7 @@ class PullRequestValidator(PullRequest):
 
     def _not_tested_yet(self, allowed_users):
         for c in self.get_issue_comments():
-            if c.user.login in allowed_users \
+            if c.user.login == "PilzHardwareTestBot" \
                and c.body.startswith("Finished test of %s" % self.head.sha):
                 return False
         return True
